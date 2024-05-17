@@ -121,8 +121,7 @@ class Lexer:
         else:
             return Token(TT_FLOAT, float(num_str))
 
-
-# building different node types
+# Building different node types
 class NumberNode:
     def __init__(self, token):
         self.token = token
@@ -130,52 +129,74 @@ class NumberNode:
     def __repr__(self):
         return f'{self.token}'
 
-
 class BinOpNode:
     def __init__(self, left_node, op_token, right_node):
         self.left_node = left_node
         self.op_token = op_token
         self.right_node = right_node
+
     def __repr__(self):
-        return f'({self.left_node}, {self.op_token},{self.right_node})'
+        return f'({self.left_node}, {self.op_token}, {self.right_node})'
 
-# defining parser class
-
+# Defining parser class
 class Parser:
     def __init__(self, tokens):
         self.tokens = tokens
-        self.token_index = 0
+        self.token_index = -1
         self.advance()
 
-    def advance(self, ):
+    def advance(self):
         self.token_index += 1
         if self.token_index < len(self.tokens):
             self.current_token = self.tokens[self.token_index]
         return self.current_token
+
+    def parse(self):
+        res = self.expr()
+        return res
+
     def factor(self):
         token = self.current_token
 
         if token.type in (TT_INT, TT_FLOAT):
             self.advance()
             return NumberNode(token)
-        def term(self):
-            return self.bin_op(self.factor, (TT_MUL, TT_DIV))
+        elif token.type == TT_LPAREN:
+            self.advance()
+            res = self.expr()
+            if self.current_token.type == TT_RPAREN:
+                self.advance()
+                return res
+            else:
+                raise Exception("Expected ')'")
+        else:
+            raise Exception("Expected int or float")
 
-        def expr():
-            return self.bin_op(self.term,(TT_PLUS, TT_MINUS))
-        def bin_op(self, func,ops):
-            left = func()
+    def term(self):
+        return self.bin_op(self.factor, (TT_MUL, TT_DIV))
 
-            while self.current_tok in ops:
-                op_tok = self.current_tok
-                right = func()
-                left = BinOpNode(left, op_tok,right)
+    def expr(self):
+        return self.bin_op(self.term, (TT_PLUS, TT_MINUS))
 
-            return left
+    def bin_op(self, func, ops):
+        left = func()
 
+        while self.current_token is not None and self.current_token.type in ops:
+            op_token = self.current_token
+            self.advance()
+            right = func()
+            left = BinOpNode(left, op_token, right)
+
+        return left
 
 # Creating a run function
 def run(file_name, text):
     lexer = Lexer(file_name, text)
     tokens, error = lexer.make_tokens()
-    return tokens, error
+    if error:
+        return None, error
+
+    # Generate Abstract Syntax Tree (AST)
+    parser = Parser(tokens)
+    ast = parser.parse()
+    return ast, None
