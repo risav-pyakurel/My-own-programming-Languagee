@@ -15,6 +15,25 @@ class IllegalCharacterError(Error):
     def __init__(self, details):
         super().__init__('Illegal Character', details)
 
+# making new class position where it keeps track of column number line number and current index
+
+class Position:
+    def __init__(self, index, line_num, col_num):
+        self.index = index
+        self.line_num = line_num
+        self.col_num = col_num
+
+    def advance(self, current_char):
+        self.index +=1
+        self.col_num +=1
+
+        if current_char == '\n':
+            self.line_num +=1
+            self.col_num = 0
+        return self
+    def copy(self):
+        return Position(self.index, self.line_num, self.col_num)
+
 # Working on token class
 TT_INT = 'INT'
 TT_FLOAT = 'FLOAT'
