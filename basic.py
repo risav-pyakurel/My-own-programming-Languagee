@@ -3,25 +3,29 @@ DIGITS = '0123456789'
 
 # Creating an error class
 class Error:
-    def __init__(self, error_name, details):
+    def __init__(self, position_start, position_end, error_name, details):
+        self.position_start = position_start
+        self.position_end = position_end
         self.error_name = error_name
         self.details = details
 
     def as_string(self):
-        result = f'{self.error_name}: {self.details}'
+        result = f'{self.error_name}: {self.details}, line{self.position_start.line_num +1}'
         return result
 
 class IllegalCharacterError(Error):
-    def __init__(self, details):
+    def __init__(self, position_start, position_end, details):
         super().__init__('Illegal Character', details)
 
 # making new class position where it keeps track of column number line number and current index
 
 class Position:
-    def __init__(self, index, line_num, col_num):
+    def __init__(self, index, line_num, col_num, file_name, file_text):
         self.index = index
         self.line_num = line_num
         self.col_num = col_num
+        self.file_name = file_name
+        self.file_text = file_text
 
     def advance(self, current_char):
         self.index +=1
@@ -32,7 +36,7 @@ class Position:
             self.col_num = 0
         return self
     def copy(self):
-        return Position(self.index, self.line_num, self.col_num)
+        return Position(self.index, self.line_num, self.col_num, self.file_name, self.file_text)
 
 # Working on token class
 TT_INT = 'INT'
@@ -56,15 +60,15 @@ class Token:
 
 # Now we work on lexer class
 class Lexer:
-    def __init__(self, text):
+    def __init__(self,file_name, text):
         self.text = text
-        self.position = -1
+        self.position = Position(-1,0,-1,file_name,text)
         self.current_character = None
         self.advance()
 
     def advance(self):
-        self.position += 1
-        self.current_character = self.text[self.position] if self.position < len(self.text) else None
+        self.position.advance(self.current_character)
+        self.current_character = self.text[self.position.index] if self.position.index < len(self.text) else None
 
     def make_tokens(self):
         tokens = []
@@ -92,9 +96,10 @@ class Lexer:
                 tokens.append(Token(TT_RPAREN))
                 self.advance()
             else:
+                position_start = self.copy()
                 char = self.current_character
                 self.advance()
-                return [], IllegalCharacterError("'" + char + "'")
+                return [], IllegalCharacterError(position_start,self.position,"'" + char + "'")
         return tokens, None
 
     def make_number(self):
@@ -117,7 +122,7 @@ class Lexer:
             return Token(TT_FLOAT, float(num_str))
 
 # Creating a run function
-def run(text):
-    lexer = Lexer(text)
+def run( file_name,text):
+    lexer = Lexer(file_name,text)
     tokens, error = lexer.make_tokens()
     return tokens, error
