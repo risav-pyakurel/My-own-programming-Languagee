@@ -121,6 +121,59 @@ class Lexer:
         else:
             return Token(TT_FLOAT, float(num_str))
 
+
+# building different node types
+class NumberNode:
+    def __init__(self, token):
+        self.token = token
+
+    def __repr__(self):
+        return f'{self.token}'
+
+
+class BinOpNode:
+    def __init__(self, left_node, op_token, right_node):
+        self.left_node = left_node
+        self.op_token = op_token
+        self.right_node = right_node
+    def __repr__(self):
+        return f'({self.left_node}, {self.op_token},{self.right_node})'
+
+# defining parser class
+
+class Parser:
+    def __init__(self, tokens):
+        self.tokens = tokens
+        self.token_index = 0
+        self.advance()
+
+    def advance(self, ):
+        self.token_index += 1
+        if self.token_index < len(self.tokens):
+            self.current_token = self.tokens[self.token_index]
+        return self.current_token
+    def factor(self):
+        token = self.current_token
+
+        if token.type in (TT_INT, TT_FLOAT):
+            self.advance()
+            return NumberNode(token)
+        def term(self):
+            return self.bin_op(self.factor, (TT_MUL, TT_DIV))
+
+        def expr():
+            return self.bin_op(self.term,(TT_PLUS, TT_MINUS))
+        def bin_op(self, func,ops):
+            left = func()
+
+            while self.current_tok in ops:
+                op_tok = self.current_tok
+                right = func()
+                left = BinOpNode(left, op_tok,right)
+
+            return left
+
+
 # Creating a run function
 def run(file_name, text):
     lexer = Lexer(file_name, text)
