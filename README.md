@@ -23,16 +23,13 @@ To get started with this project, follow the instructions below:
 
 ### Installation
 
-1. Clone the repository:
+ Clone the repository:
    ```bash
    git clone https://github.com/risav-pyakurel/My-own-programming-Languagee.git
    cd My-own-programming-Languagee
    ```
 
-2. Install the required dependencies (if any). For example:
-   ```bash
-   pip install -r requirements.txt
-   ```
+
 
 ### Usage
 
